@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title th:utext="#{project.name}"></title>
+    <link href="../static/css/element/index.css" rel="stylesheet" th:href="@{/css/element/index.css}">
+    <!-- 自定义css文件 -->
+    <link href="../static/css/common.css" rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+
+<body>
+    <div id="sso">
+        <div class="cherish-helper">
+            <div class="cherish-content">
+                <div class="cherish-title center">Cherish-Hui共享平台(SSO)</div>
+                <div class="page-content center">
+                    <el-row class="cherish-row" type="flex" align="center">
+                        登陆成功
+                        <span>
+                            <em id="number">3</em>秒后跳转</span>
+                        <span>
+                            <a href="/sso/callBack">手动跳转</a>
+                        </span>
+                    </el-row>
+                </div>
+            </div>
+        </div>
+        <div id="footer" class="footer" v-cloak>
+            <span th:text="#{footer.textBefore}">有问题发送邮件至</span>
+            <el-button type="text" @click="sendMail" class="footer-txt" th:text="#{footer.emailGroup}">服务支持(cherish-Hui)
+            </el-button>
+        </div>
+    </div>
+
+    <form id="interval" action="/sso/callBack"></form>
+
+    <script src="../static/js/vue.js" th:src="@{/js/vue.js}"></script>
+    <script src="../static/js/element.js" th:src="@{/js/element.js}"></script>
+    <script src="../static/js/jquery-3.3.1.min.js" th:src="@{/js/jquery-3.3.1.min.js}"></script>
+    <!-- 定义vue组件 -->
+    <script th:fragment="vue">
+
+        //定时跳转
+        onload = function () {
+            setInterval(go, 1000);
+        };
+        var x = 3; //利用了全局变量来执行
+        function go() {
+            x--;
+            if (x > 0) {
+                $("#number").html(x); //每次设置的x的值都不一样了。
+            } else {
+                $("#interval").submit();
+            }
+        }
+
+        new Vue({
+            el: '#sso',
+            data: {
+
+            },
+            methods: {
+                sendMail: function () {
+                    window.location.href = 'mailto:1191837698@qq.com';
+                },
+            },
+        })
+
+    </script>
+
+</body>
+
+</html>
