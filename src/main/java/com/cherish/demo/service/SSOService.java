@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @Service
 public class SSOService {
+
     private static final Logger logger = LoggerFactory.getLogger(SSOService.class);
     public static final String RESULT_SUCCESS = "SUCCESS";
     public static final String RESULT_ERROR = "ERROR";

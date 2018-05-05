@@ -39,29 +39,29 @@ public class SSOFilter implements Filter {
         Optional<String> userOptional = Optional.ofNullable((String) session.getAttribute("User"));
         //获取Http请求的URL
         String requestURI = httpServletRequest.getRequestURI();
-        //SSO-Client回调地址不存在[非法]
-        if (!callBackOptional.isPresent()) {
-            httpServletResponse.sendError(500, "请勿越过SSO-Client直接登陆SSO,这将会导致无法获取SSO-Client的URL.");
-            return;
-        }
         //提交登陆[无条件]
         if ("/sso/save".equals(requestURI)) {
             chain.doFilter(servletRequest, servletResponse);
             return;
         }
-        //注销[未登录-非法]
+        //SSO-Client回调地址不存在[非法]
+        if (!callBackOptional.isPresent()) {
+            httpServletResponse.sendError(500, "请勿越过SSO-Client直接登陆SSO,这将会导致无法获取SSO-Client的URL!!!!");
+            return;
+        }
+        //注销[未登陆-非法]
         if (StringUtils.isEmpty(userOptional.orElse(null)) && "/sso/logout".equals(requestURI)) {
             httpServletResponse.sendError(500, "请勿在未登陆状态访问注销,属于非法访问!!!!!!!!!!!!!!!!!!!!!!!!!!!!!.");
             return;
         }
-        //注销[已登录-放行]
+        //注销[已登陆-放行]
         if (!StringUtils.isEmpty(userOptional.orElse(null)) && "/sso/logout".equals(requestURI)) {
             chain.doFilter(servletRequest, servletResponse);
             return;
         }
         //回调SSO-Client[未登陆-非法]
         if (StringUtils.isEmpty(userOptional.orElse(null)) && "/sso/callBack".equals(requestURI)) {
-            httpServletResponse.sendError(500, "请勿越过SSO直接回调SSO-Client,这将会导致无法获取SSO-Client的URL.");
+            httpServletResponse.sendError(500, "请勿越过SSO直接回调SSO-Client,这将会导致无法获取SSO-Client的URL!!!!");
             return;
         }
         //回调SSO-Client[登陆-放行]
