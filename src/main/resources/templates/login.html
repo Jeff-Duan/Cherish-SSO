@@ -10,6 +10,12 @@
     <link href="../static/css/element/index.css" rel="stylesheet" th:href="@{/css/element/index.css}">
     <!-- 自定义css文件 -->
     <link href="../static/css/common.css" rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .page-content {
+            margin-top: 3%;
+            padding-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,9 +24,6 @@
             <div class="cherish-content">
                 <div class="cherish-title center">Cherish-Hui共享平台登录入口(SSO)</div>
                 <div class="page-content center">
-                    <el-row class="cherish-row" type="flex" align="center">
-                        <div style="font-size:45px;">Sign Up</div>
-                    </el-row>
                     <form id="loginForm" action="/sso/save" th:action="@{/sso/save}" method="post">
                         <el-row class="cherish-row" type="flex" align="center">
                             <el-col :span="24">
@@ -29,16 +32,48 @@
                                 </el-input>
                             </el-col>
                         </el-row>
-                        <el-row class="cherish-row" type="flex" align="center">
+                        <el-row class="cherish-row" type="flex" align="center" v-show="loginType == 1">
                             <el-col :span="24">
                                 <el-input placeholder="请输入密码" type="password" v-model="password" name="password">
                                     <template slot="prepend">密码</template>
                                 </el-input>
                             </el-col>
                         </el-row>
+                        <el-row class="cherish-row" type="flex" align="center" v-show="loginType == 2 && isPhoto == 1">
+                            <el-col :span="24" style="height: 330px;border-radius:50%;">
+                                <video id="video" style="width: 330px;height: 330px;border-radius:50%;" poster="../static/img/user.png" th:poster="@{/img/user.png}"></video>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cherish-row" type="flex" align="center" v-show="loginType == 2 && isPhoto == 0">
+                            <el-col :span="24" style="height: 330px;">
+                                <canvas id="canvas" width="330" height="330" style="border-radius:50%;"></canvas>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cherish-row" type="flex" align="center" v-show="loginType == 2 && isPhoto == 1">
+                            <el-col :span="24">
+                                <el-button style="width:100%;" type="primary" @click="photograph">咔擦</el-button>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cherish-row" type="flex" align="center" v-show="loginType == 2 && isPhoto == 0">
+                            <el-col :span="24">
+                                <el-button style="width:100%;" type="primary" @click="photographAgain">重拍</el-button>
+                            </el-col>
+                        </el-row>
                         <el-row class="cherish-row" type="flex" align="center">
                             <el-col :span="24">
                                 <el-button style="width:100%;" type="primary" @click="login">登录</el-button>
+                            </el-col>
+                        </el-row>
+                        <el-row class="cherish-row" type="flex" align="center">
+                            <el-col :span="8">
+                                <hr style="margin-top: 15%;" />
+                            </el-col>
+                            <el-col :span="8">
+                                <el-button type="text" class="footer-txt" @click="handleLoginType(2)" style="margin-left: 0px;" v-if="loginType == 1">切换人脸识别登录</el-button>
+                                <el-button type="text" class="footer-txt" @click="handleLoginType(1)" style="margin-left: 0px;" v-if="loginType == 2">切换账号密码登录</el-button>
+                            </el-col>
+                            <el-col :span="8">
+                                <hr style="margin-top: 15%;" />
                             </el-col>
                         </el-row>
                     </form>
@@ -57,16 +92,87 @@
     <script src="../static/js/jquery-3.3.1.min.js" th:src="@{/js/jquery-3.3.1.min.js}"></script>
     <!-- 定义vue组件 -->
     <script th:fragment="vue">
+
+        //获取canvas对象
+        function getCanvas() {
+            //视频流解码,用video展示出来,实际上是对视频截屏
+            var canvas = document.getElementById('canvas');
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 330, 330);
+            var canvasBase64 = canvas.toDataURL();
+            //console.log(canvasBase64);
+        }
+
         new Vue({
             el: '#sso',
             data: {
                 name: '',
                 password: '',
+                //登陆方式
+                loginType: 1,
+                //是否拍照
+                isPhoto: 1,
             },
             created: function () {
 
             },
             methods: {
+                //开启摄像头
+                openVedio: function () {
+                    // 兼容性处理
+                    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                    if (navigator.getUserMedia) {
+                        navigator.getUserMedia({ audio: true, video: { width: 200, height: 200 } },
+                            function (stream) {
+                                buffer = stream;
+                                var src = window.URL && window.URL.createObjectURL(buffer) || stream;
+                                video.muted = true; // 设置视频静音
+                                video.src = src;
+                                video.onloadedmetadata = function (e) {
+                                    video.play();
+                                };
+                            },
+                            function (err) {
+                                console.log(`哦哦，发生了错误：${err.name}`);
+                            }
+                        );
+                    } else {
+                        console.log('getUserMedia not supported');
+                        alert('浏览器不支持 getUserMedia');
+                    }
+                },
+                //关闭摄像头
+                closeVedio: function () {
+                    console.log('关闭摄像头')
+                    buffer && buffer.getVideoTracks()[0].stop(); // 暂停当前播放的音频/视频
+                    buffer = null;
+                },
+                //拍照
+                photograph: function () {
+                    this.handleIsPhoto(0);
+                    getCanvas();
+                    this.closeVedio();
+                },
+                //重拍
+                photographAgain: function () {
+                    this.openVedio();
+                    this.handleIsPhoto(1);
+                },
+                //切换登录方式
+                handleLoginType: function (index) {
+                    this.loginType = index;
+                    if (index == 1) {
+                        this.closeVedio();
+                    } else {
+                        this.openVedio();
+                        this.handleIsPhoto(1);
+                    }
+                },
+                //切换是否拍照
+                handleIsPhoto: function (index) {
+                    this.isPhoto = index;
+                },
+                //登陆
                 login: function () {
                     $('#loginForm').submit();
                 },
